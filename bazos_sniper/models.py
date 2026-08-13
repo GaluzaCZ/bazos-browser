@@ -1,17 +1,15 @@
-from __future__ import annotations
-
 from dataclasses import dataclass, field
 from datetime import date
 
 
 @dataclass(slots=True)
-class Offer:
+class Listing:
     source: str
     id: str
     title: str
+    url: str
     price: int | None = None
     location: str | None = None
-    url: str = ""
     seller: str | None = None
     phone: str | None = None
     description: str | None = None
@@ -19,17 +17,3 @@ class Offer:
     published_at: date | None = None
     views: int | None = None
 
-
-@dataclass(slots=True)
-class NormalizedVehicle:
-    brand: str | None = None
-    model: str | None = None
-    generation: str | None = None
-    engine: str | None = None
-
-
-@dataclass(slots=True)
-class SearchResult:
-    offer: Offer
-    vehicle: NormalizedVehicle
-    score: int

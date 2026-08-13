@@ -4,27 +4,24 @@ import logging
 import sqlite3
 from collections.abc import Sequence
 
-from bozos_browser.adapters.bazos.provider import BazosProvider
-from bozos_browser.adapters.http import RequestsHttpClient
-from bozos_browser.adapters.sqlite.connection import connect_database
-from bozos_browser.adapters.sqlite.repository import SqliteOfferRepository
-from bozos_browser.application.search_offers import SearchOffers
-from bozos_browser.cli.arguments import parse_options
-from bozos_browser.cli.output import format_result
+from app import SearchApplication
+from app.cli import parse_request, print_results
+from app.database import ListingRepository, connect_database
+from bazos_sniper import BazosSniper
 
 
 def main(argv: Sequence[str] | None = None) -> int:
     logging.basicConfig(level=logging.INFO)
-    request = parse_options(argv)
+    request = parse_request(argv)
     connection: sqlite3.Connection | None = None
 
     try:
         connection = connect_database()
-        provider = BazosProvider(RequestsHttpClient())
-        repository = SqliteOfferRepository(connection)
-        results = SearchOffers(provider, repository).execute(request)
-        for result in results:
-            print(format_result(result))
+        application = SearchApplication(
+            bazos=BazosSniper(),
+            repository=ListingRepository(connection),
+        )
+        print_results(application.execute(request))
     except Exception as error:
         logging.getLogger(__name__).error("Search failed: %s", error)
         return 1

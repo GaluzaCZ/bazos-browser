@@ -1,12 +1,9 @@
-from __future__ import annotations
-
 import re
 from urllib.parse import urlencode, urljoin
 
 from bs4 import BeautifulSoup, Tag
 
-from bozos_browser.domain.models import Offer
-
+from .models import Listing
 from .parsing import parse_date, parse_integer
 from .urls import BASE_URL, is_bazos_url
 
@@ -16,12 +13,12 @@ def build_search_url(query: str) -> str:
     return f"{BASE_URL}/inzeraty/osobni/?{encoded_query}"
 
 
-def parse_listing(
+def parse_listing_page(
     html: str,
-    page_url: str = BASE_URL,
-) -> tuple[list[Offer], str | None]:
+    page_url: str,
+) -> tuple[list[Listing], str | None]:
     soup = BeautifulSoup(html, "lxml")
-    offers: list[Offer] = []
+    listings: list[Listing] = []
     seen_urls: set[str] = set()
 
     for card in soup.select("div.inzeraty"):
@@ -36,18 +33,20 @@ def parse_listing(
         if not title or id_match is None or url in seen_urls:
             continue
         seen_urls.add(url)
-        offers.append(_parse_card(card, id_match.group(1), title, url, page_url))
+        listings.append(
+            _parse_card(card, id_match.group(1), title, url, page_url)
+        )
 
-    return offers, _find_next_url(soup, page_url)
+    return listings, _find_next_url(soup, page_url)
 
 
 def _parse_card(
     card: Tag,
-    offer_id: str,
+    listing_id: str,
     title: str,
     url: str,
     page_url: str,
-) -> Offer:
+) -> Listing:
     heading = card.select_one("div.inzeratynadpis")
     price = card.select_one("div.inzeratycena")
     location = card.select_one("div.inzeratylok")
@@ -57,13 +56,13 @@ def _parse_card(
 
     price_text = price.get_text(" ", strip=True) if price else ""
     image_urls = [urljoin(page_url, thumbnail["src"])] if thumbnail else []
-    return Offer(
+    return Listing(
         source="bazos",
-        id=offer_id,
+        id=listing_id,
         title=title,
+        url=url,
         price=parse_integer(price_text),
         location=location.get_text(" ", strip=True) if location else None,
-        url=url,
         description=description.get_text("\n", strip=True) if description else None,
         image_urls=image_urls,
         published_at=parse_date(heading.get_text(" ", strip=True)) if heading else None,
@@ -84,3 +83,4 @@ def _find_next_url(soup: BeautifulSoup, page_url: str) -> str | None:
         return None
     next_url = urljoin(page_url, next_link["href"])
     return next_url if is_bazos_url(next_url) else None
+

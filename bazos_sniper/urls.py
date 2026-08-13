@@ -9,3 +9,4 @@ def is_bazos_url(url: str) -> bool:
     return parsed.scheme in {"http", "https"} and (
         hostname == "bazos.cz" or hostname.endswith(".bazos.cz")
     )
+

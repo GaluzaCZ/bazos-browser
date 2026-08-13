@@ -3,13 +3,11 @@ from urllib.parse import urljoin
 
 from bs4 import BeautifulSoup, Tag
 
-from bozos_browser.domain.models import Offer
-
+from .models import Listing
 from .parsing import parse_date, parse_integer
 
 
-def enrich_offer_from_html(offer: Offer, html: str) -> Offer:
-    """Enrich an offer in place while preserving existing values if fields are absent."""
+def enrich_listing(listing: Listing, html: str) -> Listing:
     soup = BeautifulSoup(html, "lxml")
     title = _text(soup.select_one("h1.nadpisdetail"))
     description = _text(soup.select_one("div.popisdetail"), separator="\n")
@@ -19,35 +17,35 @@ def enrich_offer_from_html(offer: Offer, html: str) -> Offer:
     price_cell = _table_value(soup, ("Cena",))
     views_cell = _table_value(soup, ("Vidělo", "Zobrazeno"))
     date_element = soup.select_one(".inzeratydetnadpis .velikost10")
-    gallery_urls = _gallery_urls(soup, offer.url)
+    gallery_urls = _gallery_urls(soup, listing.url)
 
     if title:
-        offer.title = title
+        listing.title = title
     if description:
-        offer.description = description
+        listing.description = description
     seller = _text(seller_cell.select_one(".paction")) if seller_cell else None
-    offer.seller = seller or _text(seller_cell) or offer.seller
+    listing.seller = seller or _text(seller_cell) or listing.seller
 
     phone = None
     if phone_cell:
         phone = _text(phone_cell.select_one('a[href^="tel:"], .telefoni')) or _text(
             phone_cell
         )
-    offer.phone = phone or offer.phone
+    listing.phone = phone or listing.phone
 
     location = _text(location_cell)
     if location:
-        offer.location = location
+        listing.location = location
     if price_cell is not None:
-        offer.price = parse_integer(_text(price_cell) or "")
+        listing.price = parse_integer(_text(price_cell) or "")
     if views_cell is not None:
-        offer.views = parse_integer(_text(views_cell) or "")
+        listing.views = parse_integer(_text(views_cell) or "")
     if date_element is not None:
         published_at = parse_date(_text(date_element) or "")
-        offer.published_at = published_at or offer.published_at
+        listing.published_at = published_at or listing.published_at
     if gallery_urls:
-        offer.image_urls = gallery_urls
-    return offer
+        listing.image_urls = gallery_urls
+    return listing
 
 
 def _text(element: Tag | None, separator: str = " ") -> str | None:
