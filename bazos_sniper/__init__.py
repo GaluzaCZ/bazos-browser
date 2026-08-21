@@ -1,8 +1,6 @@
-"""Public API for loading structured listings from Bazos."""
+"""Bazos provider for loading source-independent offers."""
 
-from .client import BazosSniper
+from .client import BazosProvider
 from .errors import BazosSniperError
-from .models import Listing
 
-__all__ = ["BazosSniper", "BazosSniperError", "Listing"]
-
+__all__ = ["BazosProvider", "BazosSniperError"]

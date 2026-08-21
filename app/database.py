@@ -2,7 +2,7 @@ import json
 import sqlite3
 from pathlib import Path
 
-from bazos_sniper import Listing
+from offers import Offer
 
 DATABASE_PATH = Path("cars.db")
 SCHEMA = """CREATE TABLE IF NOT EXISTS offers (
@@ -51,28 +51,27 @@ def connect_database() -> sqlite3.Connection:
     return connection
 
 
-class ListingRepository:
+class SqliteOfferRepository:
     def __init__(self, connection: sqlite3.Connection) -> None:
         self._connection = connection
 
-    def upsert(self, listing: Listing) -> None:
+    def save(self, offer: Offer) -> None:
         with self._connection:
             self._connection.execute(
                 _UPSERT,
                 (
-                    listing.url,
-                    listing.source,
-                    listing.id,
-                    listing.title,
-                    listing.price,
-                    listing.location,
-                    listing.seller,
-                    listing.phone,
-                    listing.description,
-                    json.dumps(listing.image_urls),
+                    offer.url,
+                    offer.source,
+                    offer.external_id,
+                    offer.title,
+                    offer.price,
+                    offer.location,
+                    offer.seller,
+                    offer.phone,
+                    offer.description,
+                    json.dumps(offer.image_urls),
                     "[]",
-                    listing.published_at.isoformat() if listing.published_at else None,
-                    listing.views,
+                    offer.published_at.isoformat() if offer.published_at else None,
+                    offer.views,
                 ),
             )
-

@@ -1,39 +1,33 @@
-from dataclasses import dataclass
+from offers import MarketplaceProvider, OfferRepository, SearchCriteria
 
-from bazos_sniper import BazosSniper
-
-from .analysis import normalize_title, score_listing
-from .database import ListingRepository
+from .analysis import normalize_title, score_offer
 from .models import SearchResult
-
-
-@dataclass(frozen=True, slots=True)
-class SearchRequest:
-    query: str
-    limit: int = 20
 
 
 class SearchApplication:
     def __init__(
         self,
-        bazos: BazosSniper,
-        repository: ListingRepository,
+        provider: MarketplaceProvider,
+        repository: OfferRepository,
     ) -> None:
-        self._bazos = bazos
+        self._provider = provider
         self._repository = repository
 
-    def execute(self, request: SearchRequest) -> list[SearchResult]:
-        listings = self._bazos.search(request.query, request.limit)
+    def execute(
+        self,
+        criteria: SearchCriteria,
+        limit: int | None = None,
+    ) -> list[SearchResult]:
+        offers = self._provider.search(criteria, limit)
         results: list[SearchResult] = []
 
-        for listing in listings:
-            self._repository.upsert(listing)
+        for offer in offers:
+            self._repository.save(offer)
             results.append(
                 SearchResult(
-                    listing=listing,
-                    vehicle=normalize_title(listing.title),
-                    score=score_listing(listing),
+                    offer=offer,
+                    vehicle=normalize_title(offer.title),
+                    score=score_offer(offer),
                 )
             )
         return results
-

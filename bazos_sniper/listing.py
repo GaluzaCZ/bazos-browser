@@ -2,8 +2,8 @@ import re
 from urllib.parse import urlencode, urljoin
 
 from bs4 import BeautifulSoup, Tag
+from offers import Offer
 
-from .models import Listing
 from .parsing import parse_date, parse_integer
 from .urls import BASE_URL, is_bazos_url
 
@@ -16,9 +16,9 @@ def build_search_url(query: str) -> str:
 def parse_listing_page(
     html: str,
     page_url: str,
-) -> tuple[list[Listing], str | None]:
+) -> tuple[list[Offer], str | None]:
     soup = BeautifulSoup(html, "lxml")
-    listings: list[Listing] = []
+    offers: list[Offer] = []
     seen_urls: set[str] = set()
 
     for card in soup.select("div.inzeraty"):
@@ -33,20 +33,20 @@ def parse_listing_page(
         if not title or id_match is None or url in seen_urls:
             continue
         seen_urls.add(url)
-        listings.append(
+        offers.append(
             _parse_card(card, id_match.group(1), title, url, page_url)
         )
 
-    return listings, _find_next_url(soup, page_url)
+    return offers, _find_next_url(soup, page_url)
 
 
 def _parse_card(
     card: Tag,
-    listing_id: str,
+    external_id: str,
     title: str,
     url: str,
     page_url: str,
-) -> Listing:
+) -> Offer:
     heading = card.select_one("div.inzeratynadpis")
     price = card.select_one("div.inzeratycena")
     location = card.select_one("div.inzeratylok")
@@ -56,9 +56,9 @@ def _parse_card(
 
     price_text = price.get_text(" ", strip=True) if price else ""
     image_urls = [urljoin(page_url, thumbnail["src"])] if thumbnail else []
-    return Listing(
+    return Offer(
         source="bazos",
-        id=listing_id,
+        external_id=external_id,
         title=title,
         url=url,
         price=parse_integer(price_text),
@@ -83,4 +83,3 @@ def _find_next_url(soup: BeautifulSoup, page_url: str) -> str | None:
         return None
     next_url = urljoin(page_url, next_link["href"])
     return next_url if is_bazos_url(next_url) else None
-
