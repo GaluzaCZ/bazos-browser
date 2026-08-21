@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from bazos_sniper import Listing
+from offers import Offer
 
 
 @dataclass(slots=True)
@@ -13,7 +13,6 @@ class NormalizedVehicle:
 
 @dataclass(slots=True)
 class SearchResult:
-    listing: Listing
+    offer: Offer
     vehicle: NormalizedVehicle
     score: int
-

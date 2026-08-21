@@ -1,6 +1,7 @@
 # Bazos Browser
 
-Projekt obsahuje samostatnou knihovnu `bazos_sniper` a aplikaci `app`.
+Projekt obsahuje obecnou doménu nabídek `offers`, Bazoš provider
+`bazos_sniper` a aplikaci `app`.
 
 ## Spuštění
 
@@ -26,29 +27,31 @@ Python používá v názvu importu podtržítko, proto se knihovna importuje jak
 `bazos_sniper`:
 
 ```python
-from bazos_sniper import BazosSniper
+from bazos_sniper import BazosProvider
+from offers import SearchCriteria
 
-listings = BazosSniper().search("bmw", limit=10)
-for listing in listings:
-    print(listing.title, listing.price, listing.url)
+offers = BazosProvider().search(SearchCriteria(query="bmw"), limit=10)
+for offer in offers:
+    print(offer.title, offer.price, offer.url)
 ```
 
-Knihovna vlastní HTTP komunikaci, stránkování, deduplikaci a parsování seznamu
-i detailu. Vrací typované objekty `Listing` a nezná databázi, CLI ani analýzu
+Provider vlastní HTTP komunikaci, stránkování, deduplikaci a parsování seznamu
+i detailu. Vrací obecné objekty `Offer` a nezná databázi, CLI ani analýzu
 aplikace.
 
 ## Aplikace
 
-`SearchApplication` přijme knihovnu a repository jako závislosti. Zpracuje
-vrácené inzeráty, uloží je do SQLite a vrátí `SearchResult`. CLI je pouze tenká
+`SearchApplication` přijme libovolný `MarketplaceProvider` a `OfferRepository`
+jako závislosti. Metoda `execute` dostane `SearchCriteria` a volitelný limit,
+zpracuje vrácené nabídky, uloží je a vrátí `SearchResult`. CLI je pouze tenká
 prezentační vrstva. Budoucí GUI nebo API tak může volat stejnou aplikační službu
 bez závislosti na argumentech příkazové řádky nebo konzolovém výstupu.
 
 ## Tok aplikace
 
-1. CLI vytvoří aplikační požadavek s dotazem a limitem.
-2. `bazos_sniper` stáhne, stránkuje a zformátuje kompletní inzeráty.
-3. Aplikace uloží vrácené objekty přes SQLite repository.
+1. CLI vytvoří `SearchCriteria` s dotazem a předá samostatný limit.
+2. `BazosProvider` stáhne, stránkuje a převede Bazoš HTML na `Offer`.
+3. Aplikace uloží obecné nabídky přes SQLite repository.
 4. Aplikace normalizuje vozidla a vypočítá skóre.
 5. CLI vypíše aplikační výsledky.
 

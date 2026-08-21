@@ -1,16 +1,19 @@
 import argparse
 from collections.abc import Iterable, Sequence
 
+from offers import SearchCriteria
+
 from .models import SearchResult
-from .service import SearchRequest
 
 
-def parse_request(argv: Sequence[str] | None = None) -> SearchRequest:
+def parse_request(
+    argv: Sequence[str] | None = None,
+) -> tuple[SearchCriteria, int]:
     parser = argparse.ArgumentParser()
     parser.add_argument("--query", required=True)
     parser.add_argument("--limit", type=_positive_integer, default=20)
     arguments = parser.parse_args(argv)
-    return SearchRequest(query=arguments.query, limit=arguments.limit)
+    return SearchCriteria(query=arguments.query), arguments.limit
 
 
 def print_results(results: Iterable[SearchResult]) -> None:
@@ -19,11 +22,11 @@ def print_results(results: Iterable[SearchResult]) -> None:
 
 
 def format_result(result: SearchResult) -> str:
-    listing = result.listing
-    price = listing.price or "dohodou"
+    offer = result.offer
+    price = offer.price or "dohodou"
     return (
-        f"[{result.score:3}] {listing.title} | {price} | "
-        f"{listing.url} | {result.vehicle}"
+        f"[{result.score:3}] {offer.title} | {price} | "
+        f"{offer.url} | {result.vehicle}"
     )
 
 
@@ -32,4 +35,3 @@ def _positive_integer(value: str) -> int:
     if parsed_value <= 0:
         raise argparse.ArgumentTypeError("must be positive")
     return parsed_value
-
