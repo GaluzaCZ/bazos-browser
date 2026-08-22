@@ -3,6 +3,9 @@
 Projekt obsahuje obecnou doménu nabídek `offers`, Bazoš provider
 `bazos_sniper` a aplikaci `app`.
 
+Produktový cíl, rozsah MVP a dlouhodobé směřování popisuje
+[`PROJECT_DIRECTION.md`](PROJECT_DIRECTION.md).
+
 ## Instalace
 
 Vytvořte virtuální prostředí a nainstalujte projekt včetně závislostí pro
