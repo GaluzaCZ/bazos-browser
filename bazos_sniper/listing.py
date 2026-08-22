@@ -9,8 +9,16 @@ from .urls import BASE_URL, is_bazos_url
 
 
 def build_search_url(query: str) -> str:
-    encoded_query = urlencode({"hledat": query})
-    return f"{BASE_URL}/inzeraty/osobni/?{encoded_query}"
+    # Bazoš zpracovává hledání na kořenové adrese; kategorická cesta
+    # parametr `hledat` ignoruje a vrací nefiltrovaný seznam inzerátů.
+    encoded_query = urlencode(
+        {
+            "hledat": query,
+            "rubriky": "auto",
+            "kitx": "ano",
+        }
+    )
+    return f"{BASE_URL}/?{encoded_query}"
 
 
 def parse_listing_page(

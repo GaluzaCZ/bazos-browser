@@ -1,6 +1,8 @@
 from datetime import datetime
+from urllib.parse import parse_qs, urlparse
 
 from bazos_sniper import BazosProvider
+from bazos_sniper.listing import build_search_url
 from offers import Offer, SearchCriteria
 
 
@@ -34,6 +36,17 @@ DETAIL_PAGE = """
 class FakeHttpClient:
     def get_text(self, url: str) -> str:
         return DETAIL_PAGE if "/inzerat/123/" in url else LIST_PAGE
+
+
+def test_search_url_uses_bazos_search_endpoint() -> None:
+    url = urlparse(build_search_url("bmw 320"))
+
+    assert url.path == "/"
+    assert parse_qs(url.query) == {
+        "hledat": ["bmw 320"],
+        "rubriky": ["auto"],
+        "kitx": ["ano"],
+    }
 
 
 def test_bazos_provider_returns_general_offer() -> None:
