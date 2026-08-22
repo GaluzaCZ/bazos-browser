@@ -3,18 +3,32 @@
 Projekt obsahuje obecnou doménu nabídek `offers`, Bazoš provider
 `bazos_sniper` a aplikaci `app`.
 
-## Spuštění
+## Instalace
 
-Projekt používá připravené prostředí `.venv`:
+Vytvořte virtuální prostředí a nainstalujte projekt včetně závislostí pro
+testování:
 
 ```powershell
+py -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -e ".[dev]"
+```
+
+Runtime závislosti jsou `requests`, `beautifulsoup4` a parser `lxml`; extra
+`dev` instaluje také `pytest`.
+
+## Spuštění
+
+CLI lze po instalaci spustit přímo nebo přes `main.py`:
+
+```powershell
+.\.venv\Scripts\bazos-browser.exe --query bmw --limit 10
 .\.venv\Scripts\python.exe main.py --query bmw --limit 10
 ```
 
-Při použití aktivovaného prostředí stačí:
+Testy neprovádějí živé HTTP požadavky:
 
 ```powershell
-python main.py --query bmw --limit 10
+.\.venv\Scripts\python.exe -m pytest -v
 ```
 
 Jediné podporované volby jsou povinné `--query` a volitelné kladné `--limit`
